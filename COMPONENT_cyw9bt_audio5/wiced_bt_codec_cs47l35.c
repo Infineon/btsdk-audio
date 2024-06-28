@@ -495,7 +495,7 @@ static void platform_bham_codec_marley_write_cmd(uint32_t address, uint16_t tx_l
 #endif
 
 #if defined(CYW55500A1)
-    wiced_rtos_delay_milliseconds(1, KEEP_THREAD_ACTIVE);
+    wiced_rtos_delay_milliseconds(10, ALLOW_THREAD_TO_SLEEP);
 #else
     //if no delay cs47l35 will not have voice
     //TODO: investigating the needed delay.

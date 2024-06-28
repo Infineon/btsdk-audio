@@ -1078,7 +1078,7 @@ static void bt_hs_spk_control_reconnect_power_failure(void)
     switch (bt_hs_spk_control_cb.reconnect.info[bt_hs_spk_control_cb.reconnect.idx].state)
     {
     case BT_HS_SPK_CONTROL_RECONNECT_STATE_IDLE:
-#if !defined(CYW55572) && !defined(CYW55500) && !defined(CYW20706A2)
+#if !defined(CYW55572) && !defined(CYW55500)
         result = wiced_bt_connect(bt_hs_spk_control_cb.reconnect.info[bt_hs_spk_control_cb.reconnect.idx].bdaddr);
 #else
         // For CYW55572, use wiced_bt_hfp_hf_connect trigger ACL connection and starts connection encryption
@@ -1100,7 +1100,7 @@ static void bt_hs_spk_control_reconnect_power_failure(void)
 
     case BT_HS_SPK_CONTROL_RECONNECT_STATE_ACL:
         WICED_BT_TRACE("%s:Reconnect BT_HS_SPK_CONTROL_RECONNECT_STATE_ACL\n", __FUNCTION__);
-#if !defined(CYW55572) && !defined(CYW55500) && !defined(CYW20706A2)
+#if !defined(CYW55572) && !defined(CYW55500)
         hci_handle = wiced_bt_conn_handle_get(bt_hs_spk_control_cb.reconnect.info[bt_hs_spk_control_cb.reconnect.idx].bdaddr, BT_TRANSPORT_BR_EDR);
 
         if (hci_handle != 0xFFFF)
@@ -1114,7 +1114,7 @@ static void bt_hs_spk_control_reconnect_power_failure(void)
 
     case BT_HS_SPK_CONTROL_RECONNECT_STATE_AUTH:
         WICED_BT_TRACE("%s:Reconnect BT_HS_SPK_CONTROL_RECONNECT_STATE_AUTH\n", __FUNCTION__);
-#if !defined(CYW55572) && !defined(CYW55500) && !defined(CYW20706A2)
+#if !defined(CYW55572) && !defined(CYW55500)
         result = wiced_bt_start_encryption(bt_hs_spk_control_cb.reconnect.info[bt_hs_spk_control_cb.reconnect.idx].bdaddr);
 #else
         result = WICED_TRUE;
@@ -1322,6 +1322,12 @@ static void bt_hs_spk_control_link_key_sort(uint8_t new_entry)
         return;
     }
 
+    /* Early return if there is only one or no entry to sort. */
+    if (BT_HS_SPK_CONTROL_LINK_KEY_COUNT <= 1)
+    {
+        return;
+    }
+
     /* Copy the new link key to the temporary space. */
     memcpy((void *) &tmp,
            (void *) &bt_hs_spk_control_cb.linkey[new_entry],
@@ -1471,6 +1477,8 @@ static void bt_hs_spk_control_link_key_update(wiced_bt_device_link_keys_t *link_
 #endif /* BTSTACK_VER >= 0x03000001 */
     }
 
+    /* if only one link key storage exists, directly update this link key to first entry */
+#if BT_HS_SPK_CONTROL_LINK_KEY_COUNT > 1
     /* Find a free space for this new link key. */
     for (i = 0 ; i < BT_HS_SPK_CONTROL_LINK_KEY_COUNT ; i++)
     {
@@ -1494,7 +1502,7 @@ static void bt_hs_spk_control_link_key_update(wiced_bt_device_link_keys_t *link_
             goto BT_HS_SPK_CONTROL_LINK_KEY_UPDATE_SORT_AND_WRITE;
         }
     }
-
+#endif // BT_HS_SPK_CONTROL_LINK_KEY_COUNT > 1
     /* Delete the least recently used value from the list and add the new value to the list. */
     i = BT_HS_SPK_CONTROL_LINK_KEY_COUNT - 1;
 #if BTSTACK_VER >= 0x03000001
@@ -1512,12 +1520,14 @@ static void bt_hs_spk_control_link_key_update(wiced_bt_device_link_keys_t *link_
 #endif
 
 BT_HS_SPK_CONTROL_LINK_KEY_UPDATE_SORT_AND_WRITE:
-
+    /* sorting is needed only when link key storage > 1*/
+#if BT_HS_SPK_CONTROL_LINK_KEY_COUNT > 1
     /* Sort the link key list. */
     if (i != 0)
     {
         bt_hs_spk_control_link_key_sort(i);
     }
+#endif
 #if BTSTACK_VER >= 0x03000001
 BT_HS_SPK_CONTROL_LINK_KEY_UPDATE_WRITE:
 #endif
@@ -1635,11 +1645,13 @@ static wiced_bool_t bt_hs_spk_control_link_key_get(wiced_bt_device_link_keys_t *
                 memcpy((void *)&link_keys_request->key_data.br_edr_key,
                         (void *)&bt_hs_spk_control_cb.linkey[i].key_data.br_edr_key,
                         sizeof(wiced_bt_link_key_t));
-
+#if BT_HS_SPK_CONTROL_LINK_KEY_COUNT > 1
+                // only 1 LINK_KEY would not need to push current link_key to the first entry
                 if (i != 0 )
                 {
                     bt_hs_spk_control_link_key_update(link_keys_request);
                 }
+#endif
                 return WICED_TRUE;
             }
         }
@@ -1656,10 +1668,13 @@ static wiced_bool_t bt_hs_spk_control_link_key_get(wiced_bt_device_link_keys_t *
                     (void *)&bt_hs_spk_control_cb.linkey[i].key_data.br_edr_key,
                     sizeof(wiced_bt_link_key_t));
             WICED_BT_TRACE("Found Bluetooth link key %d\n",i);
+#if BT_HS_SPK_CONTROL_LINK_KEY_COUNT > 1
+            // only 1 LINK_KEY would not need to push current link_key to the first entry
             if (i != 0 )
             {
                 bt_hs_spk_control_link_key_update(link_keys_request);
             }
+#endif
 
             return WICED_TRUE;
         }

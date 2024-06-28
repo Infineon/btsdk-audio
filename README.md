@@ -2,7 +2,7 @@
 
 ### Overview
 
-This repo contains audio libraries used in BTSDK 2.0 or higher. The libraries included in this repo are:
+This repo contains audio libraries used in AIROC BTSDK projects. The libraries included in this repo are:
 
 * avrc_controller<br/>
     * AVRC Controller<br/>
@@ -62,3 +62,23 @@ This repo contains audio libraries used in BTSDK 2.0 or higher. The libraries in
 
 * audio_uart<br/>
     * AIROC&#8482; HCI Control of Audio Streaming<br/>
+
+
+* ama<br/>
+    * Amazon Mobile Accessory Support<br/>
+
+
+* lrac\_lib<br/>
+    * Wireless Audio Stereo Sync (WASS) Support (previously called Left Right Audio Cync)<br/>
+
+
+* nanopbuf<br/>
+    * Protocol Buffers Support<br/>
+
+
+* pre\_init\_lib<br/>
+    * AIROC&#8482; WASS Memory Pre-initialization Support<br/>
+
+
+* voice\_prompt\_lib<br/>
+    * Voice Prompt Support<br/>

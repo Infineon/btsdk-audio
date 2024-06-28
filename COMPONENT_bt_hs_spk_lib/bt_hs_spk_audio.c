@@ -957,6 +957,13 @@ static void bt_hs_spk_audio_a2dp_sink_cb_start_cfm(bt_hs_spk_audio_context_t *p_
         }
     }
 
+#ifdef CODEC_SPI_DIRECT_ENABLE
+    if (p_ctx->a2dp.is_streaming_started)
+    {
+        bt_hs_spk_audio_audio_manager_stream_start(&p_ctx->audio_config);
+    }
+#endif
+
     bt_hs_spk_pm_disable();
 
     /* Set to active context. */

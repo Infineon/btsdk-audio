@@ -214,6 +214,12 @@ static void bt_hs_spk_handsfree_sco_data_app_callback(uint32_t ltch_len, uint8_t
         return;
     }
 
+#if defined(CYW20706A2)
+    // in 20706A2, ltch_len defiend as (ltch | len<<8); but ltch is no longer used in the following ICs;
+    // so need to extract the actual data
+    ltch_len = ((ltch_len >> 8) & 0xFF);
+#endif
+
     /* Forward the PCM data to HCI UART interface. */
     wiced_transport_send_data(HCI_CONTROL_HCI_AUDIO_EVENT_SCO_DATA, p_data, ltch_len);
 
@@ -259,7 +265,7 @@ static void bt_hs_spk_handsfree_cb_init(void)
     // SCO voice path
     if (bt_hs_spk_get_audio_sink() == AM_UART)
     {
-#if defined(CYW43012C0) || defined(CYW20721B2)
+#if defined(CYW43012C0) || defined(CYW20721B2) || defined(CYW20706A2)
         bt_hs_spk_handsfree_cb.sco_voice_path.path = WICED_BT_SCO_OVER_APP_CB;
         bt_hs_spk_handsfree_cb.sco_voice_path.p_sco_data_cb = &bt_hs_spk_handsfree_sco_data_app_callback;
 #elif defined(CYW55572A1) || defined(CYW55500)
@@ -2992,7 +2998,7 @@ void bt_hs_spk_handsfree_sco_voice_path_update(wiced_bool_t uart)
 {
     if (uart)
     {
-#if defined(CYW43012C0) || defined(CYW20721B2)
+#if defined(CYW43012C0) || defined(CYW20721B2) || defined(CYW20706A2)
         bt_hs_spk_handsfree_cb.sco_voice_path.path = WICED_BT_SCO_OVER_APP_CB;
         bt_hs_spk_handsfree_cb.sco_voice_path.p_sco_data_cb = &bt_hs_spk_handsfree_sco_data_app_callback;
 #elif defined(CYW55572A1) || defined(CYW55500)

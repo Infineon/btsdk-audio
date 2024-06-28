@@ -1,0 +1,93 @@
+/*
+ * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
+ *
+ * This software, including source code, documentation and related
+ * materials ("Software") is owned by Cypress Semiconductor Corporation
+ * or one of its affiliates ("Cypress") and is protected by and subject to
+ * worldwide patent protection (United States and foreign),
+ * United States copyright laws and international treaty provisions.
+ * Therefore, you may use this Software only as provided in the license
+ * agreement accompanying the software package from which you
+ * obtained this Software ("EULA").
+ * If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
+ * non-transferable license to copy, modify, and compile the Software
+ * source code solely for use in connection with Cypress's
+ * integrated circuit products.  Any reproduction, modification, translation,
+ * compilation, or representation of this Software except as specified
+ * above is prohibited without the express written permission of Cypress.
+ *
+ * Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
+ * reserves the right to make changes to the Software without notice. Cypress
+ * does not assume any liability arising out of the application or use of the
+ * Software or any product or circuit described in the Software. Cypress does
+ * not authorize its products for use in any products where a malfunction or
+ * failure of the Cypress product may reasonably be expected to result in
+ * significant property damage, injury or death ("High Risk Product"). By
+ * including Cypress's product in a High Risk Product, the manufacturer
+ * of such system or application assumes all risk of such use and in doing
+ * so agrees to indemnify Cypress against all liability.
+ */
+
+/** @file
+ *
+ * WICED LRAC Debug functions
+ *
+ */
+#pragma once
+
+#include "wiced_bt_lrac_int.h"
+#include "wiced_memory.h"
+
+/*
+ * l2cap ready error structure
+ */
+typedef struct
+{
+    uint16_t    status;
+    uint16_t    handle;
+    uint32_t    info;
+} l2c_lrac_sync_ready_err_t;
+extern l2c_lrac_sync_ready_err_t l2c_lrac_sync_ready_err;
+
+/*
+ * wiced_bt_lrac_debug_init
+ */
+wiced_result_t wiced_bt_lrac_debug_init(void);
+
+/*
+ * wiced_bt_lrac_debug_a2dp_start
+ */
+wiced_result_t wiced_bt_lrac_debug_a2dp_start(void);
+
+/*
+ * wiced_bt_lrac_debug_a2dp_stop
+ */
+wiced_result_t wiced_bt_lrac_debug_a2dp_stop(void);
+
+/*
+ * wiced_bt_lrac_debug_a2dp_missed_packets
+ */
+void wiced_bt_lrac_debug_a2dp_missed_packets(uint16_t first_seq_num, uint16_t a2dp_missed_packets);
+
+/*
+ * wiced_bt_lrac_debug_a2dp_tx_packets
+ */
+void wiced_bt_lrac_debug_a2dp_tx_packets(uint16_t seq_num, uint16_t length);
+
+/*
+ * wiced_bt_lrac_debug_a2dp_rx_packet
+ */
+void wiced_bt_lrac_debug_a2dp_rx_packet(uint16_t length);
+
+/*
+ * wiced_bt_lrac_debug_trace_print
+ */
+void wiced_bt_lrac_debug_trace_print(wiced_bt_lrac_trace_level_t trace_level, ...);
+
+/*
+ * wiced_bt_lrac_debug_lite_host_trace
+ */
+void wiced_bt_lrac_debug_lite_host_trace(lite_host_lrac_event_debug_t *p_debug_info);
