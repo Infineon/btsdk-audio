@@ -37,13 +37,11 @@
  * This file is applicable for all devices with BTSTACK version 3.0 and greater, for example 55572
  *
  */
-#if BTSTACK_VER >= 0x03000001
-
 #include "wiced_bt_gatt.h"
 #include "wiced_bt_trace.h"
 #include "wiced_timer.h"
+#if BTSTACK_VER >= 0x03000001
 #include "ancs_v3.h"
-
 /*
  * Send command to the phone to get notification attributes.
  */

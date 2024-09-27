@@ -375,6 +375,7 @@ void driver_codec_write16(uint32_t address, uint16_t value)
     platform_bham_codec_marley_write_cmd(address, 2, p_spi_tx_buffer);
 }
 
+#ifdef CODEC_SPI_WRITE_CHECK_VOLUME
 uint8_t driver_codec_write16_check(uint32_t address, uint16_t writeValue, uint16_t mask, uint16_t timeout)
 {
     //CS47L35_TRACE("DRIVER_CODEC W16 %04X:%04X\n", (uint32_t)address, (uint32_t)value);
@@ -385,7 +386,7 @@ uint8_t driver_codec_write16_check(uint32_t address, uint16_t writeValue, uint16
     {
         /* Send data with SPI */
         platform_bham_codec_marley_write_cmd(address, 2, p_spi_tx_buffer);
-        if ((driver_codec_read16(address) & mask) == (writeValue && mask))
+        if ((driver_codec_read16(address) & mask) == (writeValue & mask))
         {
             return TRUE;
         }
@@ -394,6 +395,7 @@ uint8_t driver_codec_write16_check(uint32_t address, uint16_t writeValue, uint16
     CS47L35_TRACE("write %x with value %x failed in %d times\n", address, writeValue, timeout);
     return FALSE;
 }
+#endif
 
 void driver_codec_write32(uint32_t address, uint32_t value)
 {
@@ -557,19 +559,19 @@ void wiced_bt_codec_cs47l35_set_output_volume(uint8_t left_vol, uint8_t right_vo
 
 #ifdef CODEC_SPI_WRITE_CHECK_VOLUME
     reg = (uint16_t) left_vol | (left_mute << 8) | 0x1 << 9;
-    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1L, reg, 0xff, SPI_WRITE_TIMEOUT))
+    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1L, reg, 0xff, SPI_WRITE_TIMEOUT) == FALSE)
     {
         CS47L35_TRACE("Write CODEC_DAC_DIGITAL_VOLUME_1L FAILED!\n");
     }
 
     reg = (uint16_t) right_vol | (right_mute << 8) | 0x1 << 9;
-    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1R, reg, 0xff, SPI_WRITE_TIMEOUT))
+    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1R, reg, 0xff, SPI_WRITE_TIMEOUT) == FALSE)
     {
         CS47L35_TRACE("Write CODEC_DAC_DIGITAL_VOLUME_1R FAILED!\n");
     }
 
     reg = (uint16_t) right_vol | (right_mute << 8) | 0x1 << 9;
-    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_4L, reg, 0xff, SPI_WRITE_TIMEOUT))
+    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_4L, reg, 0xff, SPI_WRITE_TIMEOUT) == FALSE)
     {
         CS47L35_TRACE("Write CODEC_DAC_DIGITAL_VOLUME_4L FAILED!\n");
     }

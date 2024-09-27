@@ -155,7 +155,9 @@ static uint8_t  driver_codec_nirq_check(void);
 static uint16_t driver_codec_read16(uint32_t address);
 static uint32_t driver_codec_read32(uint32_t address);
 static void     driver_codec_register_write(uint32_t address, uint32_t value);
+#ifdef CODEC_SPI_WRITE_CHECK_VOLUME
 static uint8_t  driver_codec_write16_check(uint32_t address, uint16_t writeValue, uint16_t mask, uint16_t timeout);
+#endif
 static void     driver_codec_reset(void);
 static void     driver_codec_write16(uint32_t address, uint16_t value);
 static void     driver_codec_write32(uint32_t address, uint32_t value);
@@ -362,19 +364,19 @@ void wiced_bt_codec_cs47l35_set_output_volume(uint8_t left_vol, uint8_t right_vo
 
 #ifdef CODEC_SPI_WRITE_CHECK_VOLUME
     reg = (uint16_t) left_vol | (left_mute << 8) | 0x1 << 9;
-    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1L, reg, 0xff, SPI_WRITE_TIMEOUT))
+    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1L, reg, 0xff, SPI_WRITE_TIMEOUT) == FALSE)
     {
         PLATFORM_AUDIO_TRACE("Write CODEC_DAC_DIGITAL_VOLUME_1L FAILED!\n");
     }
 
     reg = (uint16_t) right_vol | (right_mute << 8) | 0x1 << 9;
-    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1R, reg, 0xff, SPI_WRITE_TIMEOUT))
+    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_1R, reg, 0xff, SPI_WRITE_TIMEOUT) == FALSE)
     {
         PLATFORM_AUDIO_TRACE("Write CODEC_DAC_DIGITAL_VOLUME_1R FAILED!\n");
     }
 
     reg = (uint16_t) right_vol | (right_mute << 8) | 0x1 << 9;
-    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_4L, reg, 0xff, SPI_WRITE_TIMEOUT))
+    if (driver_codec_write16_check(CODEC_DAC_DIGITAL_VOLUME_4L, reg, 0xff, SPI_WRITE_TIMEOUT) == FALSE)
     {
         PLATFORM_AUDIO_TRACE("Write CODEC_DAC_DIGITAL_VOLUME_4L FAILED!\n");
     }
@@ -495,7 +497,7 @@ static void platform_bham_codec_marley_write_cmd(uint32_t address, uint16_t tx_l
 #endif
 
 #if defined(CYW55500A1)
-    wiced_rtos_delay_milliseconds(10, ALLOW_THREAD_TO_SLEEP);
+    wiced_rtos_delay_milliseconds(3, KEEP_THREAD_ACTIVE);
 #else
     //if no delay cs47l35 will not have voice
     //TODO: investigating the needed delay.
@@ -579,6 +581,7 @@ static void driver_codec_write16(uint32_t address, uint16_t value)
     platform_bham_codec_marley_write_cmd(address, 2, p_spi_tx_buffer);
 }
 
+#ifdef CODEC_SPI_WRITE_CHECK_VOLUME
 static uint8_t driver_codec_write16_check(uint32_t address, uint16_t writeValue, uint16_t mask, uint16_t timeout)
 {
     //CS47L35_TRACE("DRIVER_CODEC W16 %04X:%04X\n", (uint32_t)address, (uint32_t)value);
@@ -589,7 +592,7 @@ static uint8_t driver_codec_write16_check(uint32_t address, uint16_t writeValue,
     {
         /* Send data with SPI */
         platform_bham_codec_marley_write_cmd(address, 2, p_spi_tx_buffer);
-        if ((driver_codec_read16(address) & mask) == (writeValue && mask))
+        if ((driver_codec_read16(address) & mask) == (writeValue & mask))
         {
             return TRUE;
         }
@@ -598,6 +601,7 @@ static uint8_t driver_codec_write16_check(uint32_t address, uint16_t writeValue,
     PLATFORM_AUDIO_TRACE("write %x with value %x failed in %d times", address, writeValue, timeout);
     return FALSE;
 }
+#endif
 
 static uint8_t driver_codec_nirq_check(void)
 {

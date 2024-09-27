@@ -38,11 +38,9 @@
  *
  */
 
-#if BTSTACK_VER >= 0x03000001
-
 #include "wiced_bt_trace.h"
 #include "wiced_bt_uuid.h"
-
+#if BTSTACK_VER >= 0x03000001
 #include "ams_v3.h"
 
 /*

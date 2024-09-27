@@ -771,8 +771,21 @@ static void ancs_client_process_notification_source(uint8_t index, uint8_t *data
         else
         {
             p_prev = ancs_client[index].p_first_event;
+            if (p_prev->data.basic.notification_uid > p_ancs_event->data.basic.notification_uid)
+            {
+                p_prev->data.basic.flags |= ANCS_EVENT_FLAG_IMPORTANT;
+                wiced_bt_free_buffer(p_ancs_event);
+                return;
+            }
+
             for (p_event = ancs_client[index].p_first_event->p_next; p_event != NULL; p_event = p_event->p_next)
             {
+                if (p_event->data.basic.notification_uid > p_ancs_event->data.basic.notification_uid)
+                {
+                    p_event->data.basic.flags |= ANCS_EVENT_FLAG_IMPORTANT;
+                    wiced_bt_free_buffer(p_ancs_event);
+                    return;
+                }
                 if (p_event->data.basic.notification_uid == p_ancs_event->data.basic.notification_uid)
                 {
                     p_prev->p_next = p_event->p_next;

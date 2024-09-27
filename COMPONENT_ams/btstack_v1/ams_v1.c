@@ -37,12 +37,10 @@
  * This file is applicable for all devices with BTSTACK version lower than 3.0, i.e. 20xxx and 43012C0
  *
  */
-
-#if BTSTACK_VER < 0x03000001
-
+#include "wiced_bt_trace.h"
 #include "wiced_bt_uuid.h"
+#if BTSTACK_VER < 0x03000001
 #include "ams_v1.h"
-
 /*
  * Send command to iOS device to indicate which attributes are interested in for specific entity.
  */
