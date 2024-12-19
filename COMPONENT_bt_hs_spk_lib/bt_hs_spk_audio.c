@@ -96,6 +96,10 @@
 #define MAX_AVRCP_VOLUME_LEVEL  0x7f
 #endif // end of MAX_AVRCP_VOLUME_LEVEL
 
+#ifndef BT_A2DP_HCI_ROLE_SELECT
+#define BT_A2DP_HCI_ROLE_SELECT             (HCI_ROLE_PERIPHERAL)
+#endif
+
 //=================================================================================================
 //  Structure
 //=================================================================================================
@@ -720,10 +724,14 @@ static void bt_hs_spk_audio_a2dp_sink_cb_connect(bt_hs_spk_audio_context_t *p_ct
         if (BT_HS_SPK_CONTROL_BR_EDR_MAX_CONNECTIONS > 1)
         {
 #if BTSTACK_VER >= 0x03000001
-            bt_hs_spk_control_bt_role_set(p_data->connect.bd_addr, HCI_ROLE_PERIPHERAL);
+            bt_hs_spk_control_bt_role_set(p_data->connect.bd_addr, BT_A2DP_HCI_ROLE_SELECT );
 #else
-            bt_hs_spk_control_bt_role_set(p_data->connect.bd_addr, HCI_ROLE_PERIPHERAL);
+            bt_hs_spk_control_bt_role_set(p_data->connect.bd_addr, BT_A2DP_HCI_ROLE_SELECT );
 #endif
+        }
+        else
+        {
+            bt_hs_spk_control_bt_role_set(p_data->connect.bd_addr, BT_A2DP_HCI_ROLE_SELECT );
         }
     }
 

@@ -1856,8 +1856,8 @@ wiced_bt_avrc_sts_t wiced_avrc_build_metadata_rsp (void *p_rsp, wiced_bt_avrc_xm
                     /* reject it */
                     hdr->ctype = AVRC_RSP_NOT_IMPL;
 
-#if defined(CYW55500)
-                    // TODO: H1 processing
+#if defined(CYW55500) || defined (CYW43022C1)
+                    wiced_avrc_build_and_send_metadata_rsp(&p_msg->type.response, AVRC_RSP_NOT_IMPL, handle, label);
 #else
                     wiced_bt_avrc_send_vendor_rsp(handle, label, &p_msg->type.response);
 #endif

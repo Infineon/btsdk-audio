@@ -235,7 +235,7 @@ void wiced_bt_ancs_client_connection_down(uint8_t index, wiced_bt_gatt_connectio
 {
     ANCS_CLIENT_TRACE("%s %B%u\n", __func__, p_conn_status->bd_addr, p_conn_status->conn_id);
 
-    if (ancs_client[index].conn_id == p_conn_status->conn_id)
+    if(ancs_client && (ancs_client[index].conn_id == p_conn_status->conn_id))
     {
         ancs_client_stop(index);
     }
@@ -280,7 +280,7 @@ wiced_bool_t wiced_bt_ancs_client_initialize(uint8_t max_connection,wiced_bt_anc
         /* Initialize connection timer */
         ancs_client[index].timer_param = index;
 
-#if defined(CYW55572A1)
+#if defined(CYW55572A1) || defined(CYW55500) || defined(CYW43022)
         wiced_init_timer(&ancs_client[index].ancs_retry_timer,
                          &ancs_client_retry_timeout,
                          (TIMER_PARAM_TYPE)&ancs_client[index].timer_param,
@@ -369,7 +369,7 @@ static void ancs_client_stop(uint8_t index)
 static void ancs_client_retry_timeout(TIMER_PARAM_TYPE count)
 {
     wiced_bt_gatt_status_t status;
-#if defined(CYW55572A1)
+#if defined(CYW55572A1) || defined(CYW55500) || defined(CYW43022)
     uint8_t index = *(uint8_t *)count;
 #else
     uint8_t index = (uint8_t)count;

@@ -1327,6 +1327,12 @@ void wiced_bt_avrc_tg_vendor_command_handler( uint8_t handle, uint8_t label, uin
     avrc_rsp.rsp.status = status;
 
     avrc_sts = wiced_bt_avrc_parse_command((wiced_bt_avrc_msg_t *)p_msg, &command,  temp_buff, APP_AVRC_TEMP_BUF);
+    WICED_BTAVRCP_TRACE("[%s] error return %d pdu_id %x",__FUNCTION__, avrc_sts, pdu_id);
+    if((avrc_sts == AVRC_STS_INTERNAL_ERR) && (pdu_id == AVRC_PDU_SET_ABSOLUTE_VOLUME))
+    {
+        /* Fix: PTS test AVRCP/TG/VLH/BI-01-C */
+        avrc_sts = AVRC_STS_NOT_FOUND; // As per TS return this error code
+    }
 
     if(temp_buff == NULL)
     {

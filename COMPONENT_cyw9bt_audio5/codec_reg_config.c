@@ -245,7 +245,8 @@ codec_reg sco_stream_codec_config[] =
     {0x55A,     0x0001},    // AIF2_Rx_Enables(55AH):   0001 AIF2RX2_ENA=0, AIF2RX1_ENA=1
 
     /* Enable TX channels*/
-    {0x559,     0x0001},    // AIF2_Tx_Enables(559H):   0001 AIF2TX2_ENA=0, AIF2TX1_ENA=1
+    // {0x559,     0x0001},    // AIF2_Tx_Enables(559H):   0001 AIF2TX2_ENA=0, AIF2TX1_ENA=1
+    {0x559,     0x0003},    // AIF2_Tx_Enables(559H):   0001 AIF2TX2_ENA=1, AIF2TX1_ENA=1
 
     /* OUTPUTS: HPOUT */
     {0x400,     0x0000},    // Output_Enables_1(400H):  0000 EP_SEL=0, OUT5L_ENA=0, OUT5R_ENA=0, SPKOUTL_ENA=0, HP1L_ENA=0, HP1R_ENA=0
@@ -266,6 +267,7 @@ codec_reg sco_stream_codec_config[] =
 
     /* AIF2 TX: */
     {0x740,     0x0010},    // AIF2TX1MIX_Input_1_Source(740H): 0010 AIF2TX1MIX_STS1=0, AIF2TX1MIX_SRC1=IN1L signal path
+    {0x748,     0x0010},    // AIF2TX2MIX_Input_1_Source(748H): 0010 AIF2T21MIX_STS1=0, AIF2TX2MIX_SRC1=IN1L signal path
 
     /* MIXERS: */
     {0x680,     0x0028},    // OUT1LMIX_Input_1_Source(680H):   0028 OUT1LMIX_STS1=0, OUT1LMIX_SRC1=AIF2 RX1

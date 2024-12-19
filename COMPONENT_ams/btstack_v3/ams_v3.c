@@ -37,7 +37,7 @@
  * This file is applicable for all devices with BTSTACK version 3.0 and greater, for example 55572
  *
  */
-
+#include "wiced_bt_gatt.h"
 #include "wiced_bt_trace.h"
 #include "wiced_bt_uuid.h"
 #if BTSTACK_VER >= 0x03000001

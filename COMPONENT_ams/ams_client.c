@@ -198,7 +198,7 @@ void wiced_bt_ams_client_connection_down(uint8_t index, wiced_bt_gatt_connection
 {
     AMS_CLIENT_TRACE("%s %B%u\n", __func__, p_conn_status->bd_addr, p_conn_status->conn_id);
 
-    if (ams_client[index].conn_id == p_conn_status->conn_id)
+    if (ams_client && (ams_client[index].conn_id == p_conn_status->conn_id))
     {
         memset(&ams_client[index], 0, sizeof(AMS_CLIENT));
     }
