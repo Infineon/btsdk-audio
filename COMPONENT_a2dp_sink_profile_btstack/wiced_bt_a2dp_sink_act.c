@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -43,6 +43,9 @@
 #include "wiced_bt_sdp.h"
 #include "wiced_bt_a2dp_sink_int.h"
 #include "wiced_bt_sdp.h"
+#ifdef WICED_BT_A2DP_SINK_ENABLE_SET_ACL_PRIORITY
+#include "wiced_bt_l2c.h"
+#endif // WICED_BT_A2DP_SINK_ENABLE_SET_ACL_PRIORITY
 
 /* These tables translate AVDT events to state machine events */
 static const uint8_t wiced_bt_a2dp_sink_stream_evt_ok[] = {
@@ -1182,8 +1185,7 @@ void wiced_bt_a2dp_sink_stream_chg(wiced_bt_a2dp_sink_scb_t *p_scb, wiced_bool_t
 {
     WICED_BTA2DP_TRACE("%s: started:%d \n", __FUNCTION__, started);
 
-/* TODO - Set stream priority */
-#if 0
+#ifdef WICED_BT_A2DP_SINK_ENABLE_SET_ACL_PRIORITY
     if (started)
     {   /* As long as there is no channel opened */
         /* Let L2CAP know this channel is processed with high priority */

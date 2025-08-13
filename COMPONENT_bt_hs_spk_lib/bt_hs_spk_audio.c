@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -68,6 +68,9 @@
 #include "wiced_transport.h"
 #ifdef CYW20721B2
 #include "wiced_audio_sink.h"
+#endif
+#ifdef INTERNAL_TESTING
+#include "test_rpc_handler.h"
 #endif
 
 /**************************************************************************************************
@@ -676,6 +679,9 @@ static void bt_hs_spk_audio_a2dp_sink_cb(wiced_bt_a2dp_sink_event_t event, wiced
     {
         (bt_hs_spk_audio_cb.config.a2dp.post_handler)(event, p_data);
     }
+#ifdef INTERNAL_TESTING
+    test_wiced_hci_event_handler_a2dp(event,p_ctx,p_data);
+#endif
 }
 
 /*
@@ -692,7 +698,8 @@ static void bt_hs_spk_audio_a2dp_sink_cb_connect(bt_hs_spk_audio_context_t *p_ct
 
     if (p_data->connect.result == WICED_SUCCESS)
     {
-        /* Save A2DP handle. */
+
+	/* Save A2DP handle. */
         p_ctx->a2dp.handle = p_data->connect.handle;
 
         /* Maintain State */
@@ -758,6 +765,7 @@ static void bt_hs_spk_audio_a2dp_sink_cb_disconnect(bt_hs_spk_audio_context_t *p
                    bt_hs_spk_audio_cb.p_active_context,
                    p_ctx);
 
+
 #if BTSTACK_VER >= 0x03000001
     /* close audio sink route streaming */
     wiced_audio_sink_route_config_close(p_data->disconnect.handle);
@@ -775,6 +783,7 @@ static void bt_hs_spk_audio_a2dp_sink_cb_disconnect(bt_hs_spk_audio_context_t *p
     if (p_ctx->avrc.state >= REMOTE_CONTROL_CONNECTED)
     {
         wiced_bt_avrc_ct_disconnect(p_ctx->avrc.handle);
+
 
         return;
     }
@@ -1325,6 +1334,7 @@ static void bt_hs_spk_audio_avrc_ct_features_callback(wiced_bt_avrc_ct_features_
 {
     bt_hs_spk_audio_context_t *p_ctx;
 
+
     switch(event)
     {
     case WICED_BT_AVRC_CT_FEATURES_ABS_VOL_SUPPORTED:
@@ -1351,6 +1361,7 @@ static void bt_hs_spk_audio_avrc_ct_features_callback(wiced_bt_avrc_ct_features_
     default:
         break;
      }
+
 }
 #endif /* AVRC_ADV_CTRL_INCLUDED == TRUE */
 
@@ -1799,7 +1810,6 @@ static wiced_result_t bt_hs_spk_audio_button_handler(app_service_action_t action
             WICED_BT_TRACE("%s -- No Action\n",__func__);
             break;
     }
-
     return ret;
 }
 
@@ -1831,9 +1841,10 @@ static wiced_result_t bt_hs_spk_audio_volume_update(uint8_t abs_vol, wiced_bool_
 
     /* Update absolute volume. */
     p_ctx->abs_vol = abs_vol;
-    /* This print is for SVT automation script */
+
     WICED_BT_TRACE("volume_update abs_volume:%d (%d percent) \n", p_ctx->abs_vol,
             p_ctx->abs_vol * 100 /  MAX_AVRCP_VOLUME_LEVEL);
+
 
     /* Update audio manager (external codec) volume. */
     p_ctx->audio_config.volume = bt_hs_spk_audio_utils_abs_volume_to_am_volume(abs_vol);
@@ -1845,7 +1856,9 @@ static wiced_result_t bt_hs_spk_audio_volume_update(uint8_t abs_vol, wiced_bool_
             bt_hs_spk_audio_audio_manager_stream_volume_set(p_ctx->audio_config.volume, VOLUME_EFFECT_NONE);
         }
     }
-
+#ifdef INTERNAL_TESTING
+    test_wiced_hci_event_handler_avrc(AVRC_EVT_VOLUME_CHANGE,p_ctx,NULL);
+#endif
     return WICED_SUCCESS;
 }
 
@@ -2388,7 +2401,12 @@ static void bt_hs_spk_audio_avrc_connection_state_cb(uint8_t handle, wiced_bt_de
     default:
         break;
     }
-
+#ifdef INTERNAL_TESTING
+    if(connection_state !=REMOTE_CONTROL_INITIALIZED)
+    {
+    test_hci_control_send_avrc_connect_event(connection_state,remote_addr,status, p_ctx->avrc.handle);
+    }
+#endif
     if (bt_hs_spk_audio_cb.config.avrc_ct.connection_state_cb.post_handler)
     {
         bt_hs_spk_audio_cb.config.avrc_ct.connection_state_cb.post_handler(handle,
@@ -2397,6 +2415,7 @@ static void bt_hs_spk_audio_avrc_connection_state_cb(uint8_t handle, wiced_bt_de
                                                                            connection_state,
                                                                            peer_features);
     }
+
 }
 
 /*
@@ -2523,6 +2542,9 @@ static void bt_hs_spk_audio_avrc_response_cb(uint8_t handle, wiced_bt_avrc_respo
 
     case AVRC_PDU_GET_ELEMENT_ATTR:
         bt_hs_spk_audio_avrc_response_cb_get_element_attribute_rsp(p_ctx, avrc_rsp);
+#ifdef INTERNAL_TESTING
+        test_hci_get_track_info(p_ctx, avrc_rsp);
+#endif
         break;
 
     case AVRC_PDU_LIST_PLAYER_APP_ATTR:
@@ -2744,6 +2766,9 @@ static void bt_hs_spk_audio_avrc_response_cb_registered_notification_rsp(bt_hs_s
     default:
         break;
     }
+#ifdef INTERNAL_TESTING
+    test_wiced_hci_event_handler_avrc(event_id,p_ctx,avrc_rsp);
+#endif
 }
 
 /**
@@ -2804,6 +2829,7 @@ static void bt_hs_spk_audio_avrc_response_cb_get_element_attribute_rsp(bt_hs_spk
                 default:
                     break;
                 }
+
                 wiced_bt_free_buffer(rsp);
             }
        }
@@ -3534,6 +3560,7 @@ void bt_hs_spk_audio_a2dp_delay_update(void)
 void bt_hs_spk_audio_a2dp_sink_event_emulator(wiced_bt_a2dp_sink_event_t event, wiced_bt_a2dp_sink_event_data_t* p_data)
 {
     bt_hs_spk_audio_a2dp_sink_cb(event, p_data);
+
 }
 
 /*

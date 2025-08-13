@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -230,6 +230,8 @@ void hfp_ag_rfcomm_start_server( hfp_ag_session_cb_t *p_scb )
         WICED_BT_TRACE( "[%u]hfp_ag_rfcomm_start_server: rfcomm_create Port Already set to: 0x%04x\n",
                         p_scb->app_handle, p_scb->rfc_serv_handle );
     }
+
+    UNUSED_VARIABLE(rfcomm_result);
 }
 
 /*
@@ -298,6 +300,8 @@ void hfp_ag_rfcomm_do_close( hfp_ag_session_cb_t *p_scb )
         WICED_BT_TRACE( "[%u]hfp_ag_rfcomm_do_close - conn_handle zero\n", p_scb->app_handle );
         hfp_ag_rfcomm_start_server (p_scb);
     }
+
+    UNUSED_VARIABLE(rfcomm_result);
 }
 
 /*
@@ -336,6 +340,8 @@ void hfp_ag_rfcomm_closed( hfp_ag_session_cb_t *p_scb )
 
     /* Reopen server if needed */
     hfp_ag_rfcomm_start_server (p_scb);
+
+    UNUSED_VARIABLE(rfcomm_result);
 }
 
 /*

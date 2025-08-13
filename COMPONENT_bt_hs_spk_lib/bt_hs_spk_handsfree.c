@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -53,10 +53,13 @@
 #include "wiced_transport.h"
 #include "wiced_memory.h"
 
+
 #ifdef AUDIO_INSERT_ENABLED
 #include "bt_hs_spk_audio_insert.h"
 #endif
-
+#ifdef INTERNAL_TESTING
+#include "test_rpc_handler.h"
+#endif
 #if defined(CYW55500)
 // todo: Temporary workaround.
 // Remove the following declarations once they are declared in the CSP
@@ -78,6 +81,15 @@ extern wiced_bt_dev_status_t wiced_bt_utils_sco_create_as_acceptor_with_specific
 #endif // defined(CYW55500)
 
 #define BT_HS_SPK_HANDSFREE_SCO_CONNECTING_STATE_PROTECTION_TIMEOUT 500  // ms
+
+#ifndef WICED_BT_HFP_SCO_MAX_TRANS_LATENCY
+#if (WICED_BT_HFP_HF_WBS_INCLUDED == TRUE)
+#define WICED_BT_HFP_SCO_MAX_TRANS_LATENCY           (0x000d)         /* Latency: 13 ms (T2) refer to Table 5.11 of HFP v1.7.1 */
+#else
+#define WICED_BT_HFP_SCO_MAX_TRANS_LATENCY           (0x000c)         /* Latency: 12 ms ( HS/HF can use EV3, 2-EV3, 3-EV3 ) ( S4 ),
+                                                                                Refer to Table 5.9 of HFP v1.7.1 */
+#endif
+#endif // WICED_BT_HFP_SCO_MAX_TRANS_LATENCY
 
 typedef void (*bt_hs_spk_handsfree_btm_event_sco_handler_t)(handsfree_app_state_t *p_ctx, wiced_bt_management_evt_data_t *p_data);
 typedef void (*bt_hs_spk_handsfree_event_handler)(handsfree_app_state_t *p_ctx, wiced_bt_hfp_hf_event_data_t *p_data);
@@ -101,7 +113,7 @@ typedef struct
     bt_hs_spk_handsfree_btm_event_sco_handler_t btm_sco_event_handler[BTM_SCO_CONNECTION_CHANGE_EVT - BTM_SCO_CONNECTED_EVT + 1];
 
     /* Handsfree event handlers */
-    bt_hs_spk_handsfree_event_handler handsfree_event_handler[WICED_BT_HFP_HF_BIND_EVT + 1];
+	bt_hs_spk_handsfree_event_handler handsfree_event_handler[WICED_BT_HFP_HF_BIND_EVT + 1];
 
     bt_hs_spk_control_config_hfp_t  config;
     BT_HS_SPK_CONTROL_LOCAL_VOLUME_CHANGE_CB    *p_local_volume_change_cb;
@@ -183,13 +195,7 @@ static void bt_hs_spk_handsfree_cb_init_context(void)
         p_context->audio_config.bits_per_sample = DEFAULT_BITSPSAM;
         p_context->audio_config.volume          = AM_VOL_LEVEL_HIGH - 2;
         p_context->audio_config.mic_gain        = AM_VOL_LEVEL_HIGH - 2;
-
-#if (WICED_BT_HFP_HF_WBS_INCLUDED == TRUE)
-        p_context->sco_params.max_latency       = 0x000D;   /* Latency: 13 ms (T2) refer to Table 5.11 of HFP v1.7.1 */
-#else
-        p_context->sco_params.max_latency       = 0x000C;   /* Latency: 12 ms ( HS/HF can use EV3, 2-EV3, 3-EV3 ) ( S4 ),
-                                                               Refer to Table 5.9 of HFP v1.7.1 */
-#endif
+        p_context->sco_params.max_latency       = WICED_BT_HFP_SCO_MAX_TRANS_LATENCY;
         p_context->sco_params.packet_types      = WICED_SCO_PKT_TYPES;
         p_context->sco_params.retrans_effort    = WICED_ESCO_RETRANS_QUALITY;   /* Use retransmit effort link quality to support S4/T2. */
 #if (WICED_BT_HFP_HF_WBS_INCLUDED == TRUE)
@@ -959,6 +965,9 @@ void hf_sco_management_callback(wiced_bt_management_evt_t event, wiced_bt_manage
     {
         (*bt_hs_spk_handsfree_cb.btm_sco_event_handler[event - BTM_SCO_CONNECTED_EVT])(p_ctx, p_event_data);
     }
+#ifdef INTERNAL_TESTING
+	test_hci_sco_event_handler(event,p_ctx->rfcomm_handle);
+#endif
 }
 
 /*
@@ -1312,6 +1321,7 @@ static void bt_hs_spk_handsfree_event_handler_inband_ring_state(handsfree_app_st
     WICED_BT_TRACE("HF INBAND RING STATE (%d)\n", p_data->inband_ring);
 
     p_ctx->inband_ring_status = p_data->inband_ring;
+
 }
 
 /*
@@ -1434,6 +1444,7 @@ static void bt_hs_spk_handsfree_event_handler_volume_change(handsfree_app_state_
 static void bt_hs_spk_handsfree_event_handler_clip_ind(handsfree_app_state_t *p_ctx, wiced_bt_hfp_hf_event_data_t* p_data)
 {
     WICED_BT_TRACE("HF CLIP Ind (%d, %s, %s)\n", p_data->clip.type, p_data->clip.caller_num, p_data->clip.caller_name);
+
 }
 
 /*
@@ -1526,6 +1537,9 @@ static void handsfree_event_callback( wiced_bt_hfp_hf_event_t event, wiced_bt_hf
     if (bt_hs_spk_handsfree_cb.handsfree_event_handler[event])
     {
         (*bt_hs_spk_handsfree_cb.handsfree_event_handler[event])(p_ctx, p_data);
+#ifdef INTERNAL_TESTING
+        test_wiced_hci_event_handler_hf(event,p_ctx,p_data);
+#endif
     }
 
     if (bt_hs_spk_handsfree_cb.config.post_handler)
@@ -1812,6 +1826,10 @@ static wiced_result_t bt_audio_hfp_volume_down(void)
 wiced_result_t bt_hs_spk_handsfree_voice_recognition_activate(void)
 {
     uint16_t idx;
+#ifdef INTERNAL_TESTING
+    uint16_t event = HCI_CONTROL_HF_EVENT_VOICE_RECOG_EVENT;
+    test_hci_voice_recognization(event);
+#endif
 
     /* Note here that we don't have to stop the existent audio streaming here,
      * the audio streaming will be interrupted when the AG tries to establish
@@ -2502,6 +2520,12 @@ void bt_hs_spk_handsfree_audio_manager_stream_volume_set(int32_t am_vol_level,  
     {
         WICED_BT_TRACE("wiced_am_stream_set_param %d failed (%d)\n", AM_SPEAKER_VOL_LEVEL, status);
     }
+#ifdef INTERNAL_TESTING
+    else{
+        uint16_t event = WICED_BT_HFP_HF_VOLUME_CHANGE_EVT;
+        test_hci_volume_change(event,bt_hs_spk_handsfree_cb.p_active_context);
+        }
+#endif
 }
 
 #ifdef NREC_ENABLE

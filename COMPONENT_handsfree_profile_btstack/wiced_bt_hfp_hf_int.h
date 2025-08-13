@@ -5,7 +5,7 @@
 * 	This is a private interface file for the Handsfree profile.
 *
 *//*****************************************************************************
-* Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -437,6 +437,9 @@ extern uint16_t wiced_bt_hfp_hf_get_uuid_by_scn(uint8_t handle);
 extern wiced_result_t wiced_bt_hfp_hf_register( uint8_t scn, uint16_t uuid );
 extern void wiced_bt_hfp_hf_scb_dealloc(wiced_bt_hfp_hf_scb_t *p_scb);
 extern wiced_bt_hfp_hf_scb_t *wiced_bt_hfp_hf_scb_alloc(void);
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+uint16_t wiced_bt_hfp_hf_get_handle_by_bd_addr(wiced_bt_device_address_t bd_addr);
+#endif
 
 
 /* State machine related */

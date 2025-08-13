@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -52,6 +52,7 @@
 #include "wiced_audio_sink_route_config.h"
 #endif
 #include "bt_hs_spk_control.h"
+
 
 /**************************************************************************************************
 *  Macros and Literal Definitions

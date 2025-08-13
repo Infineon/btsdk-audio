@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -118,6 +118,8 @@ void hfp_ag_sco_create( hfp_ag_session_cb_t *p_scb, BOOLEAN is_orig )
 
     WICED_BT_TRACE( "hfp_ag_sco_create  is_orig: %u   sco_idx: 0x%0x  status:0x%x retry_with_sco_only: %u\n",
                     is_orig, p_scb->sco_idx, status, p_scb->retry_with_sco_only );
+
+    UNUSED_VARIABLE(status);
 }
 
 /*

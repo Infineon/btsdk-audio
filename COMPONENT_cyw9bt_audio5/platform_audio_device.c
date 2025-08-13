@@ -7,7 +7,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2021-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2021-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -72,6 +72,7 @@
 
 wiced_result_t platform_audio_device_init(const platform_audio_device_id_t device_id)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -83,10 +84,14 @@ wiced_result_t platform_audio_device_init(const platform_audio_device_id_t devic
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_configure(const platform_audio_device_id_t device_id, platform_audio_config_t *config)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -98,10 +103,14 @@ wiced_result_t platform_audio_device_configure(const platform_audio_device_id_t 
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_set_sr(const platform_audio_device_id_t device_id, int32_t sr)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     PLATFORM_AUDIO_TRACE("platform_audio_device_set_sr : %ld\n", sr);
@@ -114,10 +123,14 @@ wiced_result_t platform_audio_device_set_sr(const platform_audio_device_id_t dev
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_set_output_device(const platform_audio_device_id_t device_id, platform_audio_io_device_t sink)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     PLATFORM_AUDIO_TRACE("platform_audio_device_set_output_device : %d\n", sink);
@@ -130,10 +143,14 @@ wiced_result_t platform_audio_device_set_output_device(const platform_audio_devi
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_set_volume(const platform_audio_device_id_t device_id, int32_t volume_level)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL; i++)
     {
@@ -144,10 +161,14 @@ wiced_result_t platform_audio_device_set_volume(const platform_audio_device_id_t
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_set_mic_gain(const platform_audio_device_id_t device_id, int32_t volume_level)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL; i++)
@@ -159,10 +180,14 @@ wiced_result_t platform_audio_device_set_mic_gain(const platform_audio_device_id
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_get_volume(const platform_audio_device_id_t device_id, int32_t *volume_level)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -174,10 +199,14 @@ wiced_result_t platform_audio_device_get_volume(const platform_audio_device_id_t
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_get_volume_range(const platform_audio_device_id_t device_id, int32_t *min_volume_level, int32_t *max_volume_level)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -189,10 +218,14 @@ wiced_result_t platform_audio_device_get_volume_range(const platform_audio_devic
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_deinit(const platform_audio_device_id_t device_id)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -204,10 +237,14 @@ wiced_result_t platform_audio_device_deinit(const platform_audio_device_id_t dev
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_start(const platform_audio_device_id_t device_id)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -219,10 +256,14 @@ wiced_result_t platform_audio_device_start(const platform_audio_device_id_t devi
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_stop(const platform_audio_device_id_t device_id)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -234,10 +275,14 @@ wiced_result_t platform_audio_device_stop(const platform_audio_device_id_t devic
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 wiced_result_t platform_audio_device_ioctl(const platform_audio_device_id_t device_id, platform_audio_device_ioctl_t cmd, platform_audio_device_ioctl_data_t *cmd_data)
 {
+#ifndef DISABLE_PF_AUDIO
     uint16_t i;
 
     for (i = 0 ; i < PLATFORM_AUDIO_DEVICE_TOTAL ; i++)
@@ -249,6 +294,9 @@ wiced_result_t platform_audio_device_ioctl(const platform_audio_device_id_t devi
     }
 
     return WICED_NOT_FOUND;
+#else
+    return WICED_SUCCESS;
+#endif
 }
 
 /*******************************************************************************

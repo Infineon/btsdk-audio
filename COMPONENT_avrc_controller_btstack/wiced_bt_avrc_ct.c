@@ -1,5 +1,5 @@
 /**
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -42,7 +42,7 @@
 #include "string.h"
 #include "wiced_memory.h"
 #include "wiced_bt_avrc.h"
-
+#include "wiced_timer.h"
 
 #define CASE_RETURN_STR(const) case const: return #const;
 
@@ -349,6 +349,7 @@ typedef struct
 **  Static variables
 ******************************************************************************/
 static rcc_cb_t rcc_cb;
+wiced_timer_t discovery_timer;
 
 #ifdef CT_HANDLE_PASSTHROUGH_COMMANDS
 static wiced_bt_avrc_ct_pt_evt_cback_t wiced_bt_avrc_ct_pt_evt_cback = NULL;
@@ -571,6 +572,10 @@ void wiced_avrc_send_next_metadata_msg()
         {
             wiced_avrc_send_or_enqueue(handle, label, ctype, p_cmdbuf);
         }
+        else
+        {
+            wiced_bt_free_buffer (p_cmdbuf);
+        }
 
         return (avrc_status);
     }
@@ -590,6 +595,10 @@ void wiced_avrc_send_next_metadata_msg()
         if (avrc_status == AVRC_STS_NO_ERROR)
         {
             wiced_bt_avrc_send_browse_data(handle, label, AVRC_CMD,  p_cmdbuf);
+        }
+        else
+        {
+            wiced_bt_free_buffer (p_cmdbuf);
         }
 
         return (avrc_status);
@@ -686,7 +695,13 @@ wiced_bt_avrc_sts_t wiced_avrc_build_metadata_rsp (void *p_rsp, wiced_bt_avrc_xm
 
         return (avrc_status);
 }
+void start_discovery_timeout(WICED_TIMER_PARAM_TYPE arg)
+{
+    rcc_device_t* rcc_device  = (rcc_device_t* )arg;
 
+    wiced_bt_avrc_ct_start_discovery(rcc_device->peer_bda);
+
+}
 
     /******************************************************
      *               Callback implementations
@@ -760,8 +775,9 @@ wiced_bt_avrc_sts_t wiced_avrc_build_metadata_rsp (void *p_rsp, wiced_bt_avrc_xm
             }
             else
             {
-                wiced_bt_avrc_ct_start_discovery(peer_addr);
-            }
+                wiced_init_timer(&discovery_timer, start_discovery_timeout, prcc_dev, WICED_MILLI_SECONDS_TIMER);
+                wiced_start_timer(&discovery_timer, 200);
+           }
             if (rcc_cb.connection_cb)
             {
                 (rcc_cb.connection_cb)(handle, peer_addr,
@@ -795,6 +811,15 @@ wiced_bt_avrc_sts_t wiced_avrc_build_metadata_rsp (void *p_rsp, wiced_bt_avrc_xm
                 memset(&prcc_dev->transaction[txn_indx], 0, sizeof(rcc_transaction_t));
                 prcc_dev->transaction[txn_indx].label = txn_indx;
             }
+            WICED_BTAVRCP_TRACE("%s:  Clear %d held_trans from Xmit queue\n", __FUNCTION__, rcc_cb.num_held_trans);
+
+            for (int xx = 0; xx < rcc_cb.num_held_trans; xx++)
+            {
+                wiced_bt_avrc_xmit_buf_t *p_msgbuf = rcc_cb.xmit_queue[xx].p_buf;
+                wiced_bt_free_buffer(p_msgbuf);
+
+            }
+            rcc_cb.num_held_trans = 0;
             if (rcc_cb.connection_cb)
             {
                 (rcc_cb.connection_cb)(handle, peer_addr,
@@ -2617,6 +2642,26 @@ wiced_bt_avrc_sts_t wiced_avrc_build_metadata_rsp (void *p_rsp, wiced_bt_avrc_xm
         for (dev_indx = 0; dev_indx < MAX_CONNECTED_RCC_DEVICES; dev_indx++)
         {
             rcc_device_t* rcc_dev = &rcc_cb.device[dev_indx];
+
+            if (rcc_cb.p_avct_buf[dev_indx] != NULL)
+            {
+                wiced_bt_free_buffer(rcc_cb.p_avct_buf[dev_indx]);
+            }
+
+            if (rcc_cb.p_avrc_buf[dev_indx] != NULL)
+            {
+                wiced_bt_free_buffer(rcc_cb.p_avrc_buf[dev_indx]);
+             }
+
+            if (rcc_cb.p_browse_drb[dev_indx] != NULL)
+            {
+                    wiced_bt_free_buffer(rcc_cb.p_browse_drb[dev_indx]);
+            }
+            for (int xx = 0; xx < rcc_cb.num_held_trans; xx++)
+            {
+                wiced_bt_avrc_xmit_buf_t *p_msgbuf = rcc_cb.xmit_queue[xx].p_buf;
+                wiced_bt_free_buffer(p_msgbuf);
+            }
 
             if (rcc_dev->rc_handle != INVALID_TRANSACTION_LABEL)
             {

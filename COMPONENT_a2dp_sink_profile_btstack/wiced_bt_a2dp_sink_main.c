@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -598,7 +598,9 @@ static void wiced_bt_a2dp_sink_reg_a2dp(wiced_bt_avdt_cs_t *p_cs, wiced_bt_a2dp_
 wiced_result_t wiced_bt_a2dp_sink_register(void)
 {
     wiced_bt_a2dp_sink_scb_t   *p_scb = NULL;
+#ifndef WICED_APP_A2DP_RELAY_INCLUDED
     wiced_bt_avdt_reg_t         reg;
+#endif // WICED_APP_A2DP_RELAY_INCLUDED
     wiced_bt_avdt_cs_t          cs;
     uint16_t                    count = 0;
 
@@ -607,14 +609,16 @@ wiced_result_t wiced_bt_a2dp_sink_register(void)
 
     /* Now. Initialize the connection control blocks */
     wiced_bt_a2dp_sink_init_ccb();
-
+#ifndef WICED_APP_A2DP_RELAY_INCLUDED
     /* Register to AVDTP */
     reg.ctrl_mtu = WICED_BT_A2DP_SINK_AVDT_SIG_CH_MTU;
     reg.ret_tout = WICED_BT_A2DP_SINK_RET_TOUT;
     reg.sig_tout = WICED_BT_A2DP_SINK_SIG_TOUT;
     reg.idle_tout= WICED_BT_A2DP_SINK_IDLE_TOUT;
     reg.sec_mask = 0; /* NOT USED */
+
     wiced_bt_avdt_register(&reg, wiced_bt_a2dp_sink_conn_cback);
+#endif // WICED_APP_A2DP_RELAY_INCLUDED
 
     /* Get stream configuration and create stream */
     memset(&cs, 0, sizeof(wiced_bt_avdt_cs_t));

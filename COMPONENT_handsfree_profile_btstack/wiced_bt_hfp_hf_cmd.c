@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -303,6 +303,25 @@ void wiced_bt_hsp_at_slc( wiced_bt_hfp_hf_scb_t *p_scb )
             WICED_BT_HFP_HF_AT_FMT_INT, NULL, p_scb->mic_volume);
 }
 
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+static uint8_t s_ag_codec_cvsd_only = 0;
+static uint8_t s_hf_codec_cvsd_only = 0;
+
+extern uint8_t wiced_audio_hf_update_codec(uint8_t cvsdOnly);
+
+uint8_t wiced_bt_hfp_hf_set_codec_to_cvsd_only(uint8_t cvsdOnly)
+{
+    s_ag_codec_cvsd_only = cvsdOnly;
+
+    return wiced_audio_hf_update_codec(cvsdOnly);
+}
+
+uint8_t wiced_bt_hfp_is_hf_codec_cvsd_only(void)
+{
+    return s_hf_codec_cvsd_only;
+}
+#endif
+
 /*******************************************************************************
 ** Function         wiced_bt_hfp_hf_at_slc
 ** Description      Send initial sequence of AT commands
@@ -322,13 +341,32 @@ void wiced_bt_hfp_hf_at_slc(wiced_bt_hfp_hf_scb_t *p_scb)
             if ((p_scb->feature_mask & WICED_BT_HFP_HF_FEATURE_CODEC_NEGOTIATION)&&
                 (p_scb->peer_feature_mask & WICED_BT_HFP_AG_FEATURE_CODEC_NEGOTIATION))
             {
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+                s_hf_codec_cvsd_only = 0;
+                if (s_ag_codec_cvsd_only)
+                {
+                    /* Supporting CVSD only */
+                    wiced_bt_hfp_hf_at_send_cmd(p_scb, WICED_BT_HFP_HF_CMD_BAC, WICED_BT_HFP_HF_AT_SET,
+                        WICED_BT_HFP_HF_AT_FMT_STR, "1", 0);
+                }
+                else
+                {
+                    /* Supporting CVSD and mSBC */
+                    wiced_bt_hfp_hf_at_send_cmd(p_scb, WICED_BT_HFP_HF_CMD_BAC, WICED_BT_HFP_HF_AT_SET,
+                        WICED_BT_HFP_HF_AT_FMT_STR, "1,2", 0);
+                }
+#else
                 /* Supporting CVSD and mSBC */
                 wiced_bt_hfp_hf_at_send_cmd(p_scb, WICED_BT_HFP_HF_CMD_BAC, WICED_BT_HFP_HF_AT_SET,
                     WICED_BT_HFP_HF_AT_FMT_STR, "1,2", 0);
+#endif
                 break;
             }
             else
             {
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+                s_hf_codec_cvsd_only = 1;
+#endif
                 p_scb->slc_at_init_state++;
             }
         case WICED_BT_HFP_HF_AT_SLC_STATE_BAC:
@@ -942,6 +980,14 @@ static wiced_result_t wiced_bt_hfp_hf_cmd_parse_bt_indicator_config(wiced_bt_hfp
 }
 #endif /* Version >= 1.7 && WICED_BT_HFP_HF_IND_SUPPORTED == TRUE) */
 
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+static void wiced_bt_hfp_hf_send_BCS_rsp(wiced_bt_hfp_hf_scb_t *p_scb, uint8_t result)
+{
+    wiced_bt_hfp_hf_at_send_cmd(p_scb, WICED_BT_HFP_HF_CMD_BCS,
+                        WICED_BT_HFP_HF_AT_SET, WICED_BT_HFP_HF_AT_FMT_INT, NULL, result);
+}
+#endif
+
 /*******************************************************************************
 ** Function         wiced_bt_hfp_hf_at__cback
 ** Description      AT command processing callback for Handsfree Profile.
@@ -1168,8 +1214,15 @@ void wiced_bt_hfp_hf_at_cback(void *user_data, uint16_t res, char *p_arg)
             result = (uint8_t)wiced_bt_hfp_hf_utils_str2int(p_arg);
             app_data.selected_codec = result;
             // Send AT+BCS=<Codec ID> to AG
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+            extern void hfp_hf_relay_send_BCS_rsp(wiced_bt_hfp_hf_scb_t *, uint8_t,
+                            void (*p_send_BCS_rsp)(wiced_bt_hfp_hf_scb_t *, uint8_t));
+
+            hfp_hf_relay_send_BCS_rsp(p_scb, result, &wiced_bt_hfp_hf_send_BCS_rsp);
+#else
             wiced_bt_hfp_hf_at_send_cmd( p_scb, WICED_BT_HFP_HF_CMD_BCS,
                                 WICED_BT_HFP_HF_AT_SET, WICED_BT_HFP_HF_AT_FMT_INT, NULL, result );
+#endif
             break;
 #endif
 

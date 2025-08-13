@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -2719,13 +2719,21 @@ void bt_hs_spk_control_ble_conn_param_check(void)
             bt_hs_spk_control_cb.conn_status.le.bdaddr,
             conn_parameters.conn_interval,
             BT_HS_SPK_CONTROL_BLE_MIN_CONN_INTERVAL_DURING_AUDIO);
+#if defined(CYW55500A1)
+    wiced_bt_ble_pref_conn_params_t pref_conn_param = {.conn_interval_max = BT_HS_SPK_CONTROL_BLE_MIN_CONN_INTERVAL_DURING_AUDIO,
+        .conn_interval_min = BT_HS_SPK_CONTROL_BLE_MIN_CONN_INTERVAL_DURING_AUDIO,
+        .conn_latency = conn_parameters.conn_latency,
+        .conn_supervision_timeout = conn_parameters.supervision_timeout};
+
+    wiced_bt_l2cap_update_ble_conn_params(bt_hs_spk_control_cb.conn_status.le.bdaddr, &pref_conn_param);
+#else
     wiced_bt_l2cap_update_ble_conn_params(
             bt_hs_spk_control_cb.conn_status.le.bdaddr,
             BT_HS_SPK_CONTROL_BLE_MIN_CONN_INTERVAL_DURING_AUDIO,
             BT_HS_SPK_CONTROL_BLE_MIN_CONN_INTERVAL_DURING_AUDIO,
             conn_parameters.conn_latency,
             conn_parameters.supervision_timeout);
-
+#endif
     return;
 }
 

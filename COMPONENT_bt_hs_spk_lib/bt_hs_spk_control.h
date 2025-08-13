@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -73,6 +73,7 @@
 #endif
 #include "wiced_bt_hfp_hf.h"
 #include "wiced_sleep.h"
+
 ////// TEMP for compiling
 
 #ifndef BT_HS_SPK_CONTROL_BR_EDR_MAX_CONNECTIONS

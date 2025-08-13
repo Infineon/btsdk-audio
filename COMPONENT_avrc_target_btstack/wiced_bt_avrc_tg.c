@@ -1,5 +1,5 @@
 /**
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -2488,8 +2488,6 @@ void wiced_bt_avrc_tg_ctrl_cback( uint8_t avrc_handle, wiced_bt_avrc_ctrl_evt_t 
         if(wiced_bt_avrc_tg_cb.p_event_cb)
             (wiced_bt_avrc_tg_cb.p_event_cb)(APP_AVRC_EVENT_DEVICE_DISCONNECTED, &avrc_event);
 
-        // Try to open channel as acceptor
-        wiced_bt_avrc_tg_open(null_bda);
         break;
 
     case AVRC_CMD_TIMEOUT_EVT:
@@ -2553,6 +2551,13 @@ void wiced_bt_avrc_tg_init_app_data(void)
 *******************************************************************************/
 void wiced_bt_avrc_tg_init( wiced_bt_avrc_tg_event_cback_t *pcb )
 {
+
+    if(wiced_bt_avrc_tg_cb.p_avct_buf)
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_avct_buf);
+    if(wiced_bt_avrc_tg_cb.p_avrc_buf)
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_avrc_buf);
+    if(wiced_bt_avrc_tg_cb.p_browse_drb)
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_browse_drb);
     /* Init the AVCT specific values */
     memset(&wiced_bt_avrc_tg_cb, 0, sizeof(wiced_bt_avrc_tg_cb));
     wiced_bt_avrc_tg_cb.avrc_handle = INVALID_AVRC_HANDLE;
@@ -2568,6 +2573,33 @@ void wiced_bt_avrc_tg_init( wiced_bt_avrc_tg_event_cback_t *pcb )
 
     /* Initialize application data*/
     wiced_bt_avrc_tg_init_app_data();
+}
+
+void wiced_bt_avrc_tg_deinit()
+{
+    WICED_BTAVRCP_TRACE("[%s]", __FUNCTION__ );
+
+    /* Init the AVCT specific values */
+    if(wiced_bt_avrc_tg_cb.p_avct_buf != NULL)
+    {
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_avct_buf);
+        wiced_bt_avrc_tg_cb.p_avct_buf = NULL;
+    }
+    if(wiced_bt_avrc_tg_cb.p_avrc_buf != NULL)
+    {
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_avrc_buf);
+        wiced_bt_avrc_tg_cb.p_avrc_buf = NULL;
+    }
+    if(wiced_bt_avrc_tg_cb.p_browse_drb != NULL)
+    {
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_browse_drb);
+        wiced_bt_avrc_tg_cb.p_browse_drb =  NULL;
+    }
+    if(wiced_bt_avrc_tg_cb.p_sdp_db_avrc != NULL)
+    {
+        wiced_bt_free_buffer(wiced_bt_avrc_tg_cb.p_sdp_db_avrc);
+        wiced_bt_avrc_tg_cb.p_sdp_db_avrc =  NULL;
+    }
 }
 
 /*******************************************************************************

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -183,6 +183,9 @@ typedef struct
 typedef struct
 {
     uint32_t peer_features;
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+    BD_ADDR bd_addr;
+#endif
 } hfp_ag_connect_t;
 
 /* AT command */
@@ -250,6 +253,20 @@ extern  void hfp_ag_audio_open( uint16_t handle );
  * the handle. The data connection remains opened.
  */
 extern void hfp_ag_audio_close( uint16_t handle );
+
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+/*
+ * Opens an audio connection to the currently connected audio gateway specified
+ * by the peer address.
+ */
+extern  void hfp_ag_audio_open_by_addr(wiced_bt_device_address_t peer_addr);
+
+/*
+ * Close the currently active audio connection to a audio gateway specified by
+ * the peer address. The data connection remains opened.
+ */
+extern void hfp_ag_audio_close_by_addr(wiced_bt_device_address_t peer_addr);
+#endif
 
 /*
  * Current Call list status response

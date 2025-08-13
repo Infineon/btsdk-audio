@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -31,9 +31,10 @@
  * so agrees to indemnify Cypress against all liability.
  */
 #pragma once
-
 #include "wiced_bt_trace.h"
 #include "wiced_button_manager.h"
+
+
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -134,6 +134,31 @@ wiced_bt_hfp_hf_scb_t *wiced_bt_hfp_hf_get_scb_by_handle(uint16_t handle)
 
     return p_scb;
 }
+
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+uint16_t wiced_bt_hfp_hf_get_handle_by_bd_addr(wiced_bt_device_address_t bd_addr)
+{
+	uint16_t handle = 0xFFFF;
+    uint8_t                i = 0;
+
+    for(i = 0; i < WICED_BT_HFP_HF_MAX_CONN; i++)
+    {
+        if (wiced_bt_hfp_hf_cb.scb[i].in_use == TRUE &&
+            !wiced_bt_hfp_hf_utils_bdcmp(wiced_bt_hfp_hf_cb.scb[i].peer_addr, bd_addr))
+        {
+            handle = wiced_bt_hfp_hf_cb.scb[i].rfcomm_handle;
+            break;
+        }
+    }
+
+    if (handle == 0xFFFF)
+    {
+        WICED_BTHFP_ERROR("%s: cannot find handle for device %B\n", __FUNCTION__, bd_addr);
+    }
+
+    return handle;
+}
+#endif
 
 
 /*******************************************************************************

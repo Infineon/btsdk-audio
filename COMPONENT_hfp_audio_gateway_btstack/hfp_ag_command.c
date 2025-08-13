@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -40,6 +40,7 @@
 #include "hfp_ag.h"
 #include "hci_control_api.h"
 #include "string.h"
+#include "wiced_memory.h"
 
 /*****************************************************************************
 **  Constants
@@ -205,9 +206,15 @@ extern hfp_ag_hci_send_ag_event_cback_t hfp_ag_hci_send_ag_event;
 *******************************************************************************/
 static uint8_t _send_result_to_hf (hfp_ag_session_cb_t *p_scb, uint8_t code, char *p_arg, int16_t int_arg)
 {
-    char    buf[HFP_AG_AT_MAX_LEN + 16];
+    char    *buf = (char *)wiced_bt_get_buffer(HFP_AG_AT_MAX_LEN + 16);
     char    *p = buf;
     wiced_bt_rfcomm_result_t    ret;
+
+    if (!buf)
+    {
+        WICED_BT_TRACE("[%s]:OUT OF MEMORY", __FUNCTION__);
+        return FALSE;
+    }
 
     /* init with \r\n */
     *p++ = '\r';
@@ -242,6 +249,7 @@ static uint8_t _send_result_to_hf (hfp_ag_session_cb_t *p_scb, uint8_t code, cha
     if ( ret != WICED_BT_RFCOMM_SUCCESS)
     {
         WICED_BT_TRACE( "[%u]Sent AT fail[0x%02x][ret %d]\n", p_scb->app_handle, code, ret );
+        wiced_bt_free_buffer(buf);
         return FALSE;
     }
 
@@ -377,6 +385,10 @@ static void _parse_bac_command (hfp_ag_session_cb_t *p_scb, char *p_s)
 }
 #endif
 
+
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+extern uint8_t wiced_bt_hfp_is_hf_codec_cvsd_only(void);
+#endif
 
 /*******************************************************************************
 **
@@ -547,6 +559,10 @@ static void _handle_command_from_hf (hfp_ag_session_cb_t *p_scb, uint16_t cmd, u
 
             if (int_arg == HFP_CODEC_MSBC)
                 p_scb->msbc_selected = WICED_TRUE;
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+            else if (wiced_bt_hfp_is_hf_codec_cvsd_only() && p_scb->peer_supports_msbc)
+                p_scb->msbc_selected = WICED_TRUE;
+#endif
             else
                 p_scb->msbc_selected = WICED_FALSE;
 
@@ -644,7 +660,11 @@ void hfp_ag_send_BCS_to_hf (hfp_ag_session_cb_t *p_scb)
     int16_t codec_uuid;
 
     /* Try to use mSBC if the peer supports it */
-    if (p_scb->peer_supports_msbc)
+    if (p_scb->peer_supports_msbc
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+            && !wiced_bt_hfp_is_hf_codec_cvsd_only()
+#endif
+        )
         codec_uuid = HFP_CODEC_MSBC;
     else
         codec_uuid = HFP_CODEC_CVSD;

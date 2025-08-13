@@ -5,7 +5,7 @@
 * 	Contains Route Config APIs and definitions for Audio Sink.
 *
 *//*****************************************************************************
-* Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related

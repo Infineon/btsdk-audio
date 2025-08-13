@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -86,12 +86,18 @@
 #define WICED_ESCO_RETRANS_POWER          1
 #define WICED_ESCO_RETRANS_QUALITY        2
 
+#if (WICED_BT_HFP_HF_FORCE_2EV3 == TRUE)
+#define WICED_SCO_PKT_TYPES     (WICED_SCO_PKT_TYPES_MASK_NO_3_EV3 | \
+                                 WICED_SCO_PKT_TYPES_MASK_NO_3_EV5 | \
+                                 WICED_SCO_PKT_TYPES_MASK_NO_2_EV5)
+#else
 #define WICED_SCO_PKT_TYPES    ( WICED_SCO_PKT_TYPES_MASK_HV3 | \
                                  WICED_SCO_PKT_TYPES_MASK_EV3 | \
                                  WICED_SCO_PKT_TYPES_MASK_EV4 | \
                                  WICED_SCO_PKT_TYPES_MASK_EV5 | \
                                  WICED_SCO_PKT_TYPES_MASK_NO_3_EV3 | \
                                  WICED_SCO_PKT_TYPES_MASK_NO_3_EV5 )
+#endif
 
 // SDP Record for Hands-Free Unit
 #define WICED_HANDSFREE_HDLR_UNIT                     0x10004

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -40,6 +40,10 @@
 #include "hfp_ag.h"
 #include "hci_control_api.h"
 
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+extern uint16_t g_sco_ag_index;
+#endif
+
 static const wiced_bt_sco_params_t hf_control_esco_params =
 {
 #if ( HFP_AG_VERSION >= HFP_VERSION_1_7 )
@@ -57,6 +61,10 @@ static const wiced_bt_sco_params_t hf_control_esco_params =
 #endif
     WICED_FALSE
 };
+
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+extern uint8_t wiced_bt_hfp_is_hf_codec_cvsd_only(void);
+#endif
 
 extern hfp_ag_hci_send_ag_event_cback_t hfp_ag_hci_send_ag_event;
 /*
@@ -91,7 +99,11 @@ void hfp_ag_sco_create(hfp_ag_session_cb_t *p_scb, wiced_bool_t is_orig)
             }
 
             /* If WBS is negotiated, override the necessary defaults */
-            if ( p_scb->msbc_selected )
+            if ( p_scb->msbc_selected
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+                            && !wiced_bt_hfp_is_hf_codec_cvsd_only()
+#endif
+               )
             {
                 params.use_wbs        = WICED_TRUE;
                 params.max_latency    = 13;
@@ -109,6 +121,9 @@ void hfp_ag_sco_create(hfp_ag_session_cb_t *p_scb, wiced_bool_t is_orig)
             p_scb->retry_with_sco_only = WICED_TRUE;
         }
         status = wiced_bt_sco_create_as_initiator( p_scb->hf_addr, &p_scb->sco_idx, &params );
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+        g_sco_ag_index = p_scb->sco_idx;
+#endif
     }
     else
     {
@@ -167,6 +182,9 @@ void hfp_ag_sco_management_callback( wiced_bt_management_evt_t event, wiced_bt_m
                 ap_event.audio_open.wbs_supported = p_scb->peer_supports_msbc;
                 ap_event.audio_open.wbs_used      = p_scb->msbc_selected;
 #endif
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+                g_sco_ag_index = p_event_data->sco_connected.sco_index;
+#endif
                 if(hfp_ag_hci_send_ag_event)
                     hfp_ag_hci_send_ag_event( HCI_CONTROL_AG_EVENT_AUDIO_OPEN, p_scb->app_handle, &ap_event );
             }
@@ -194,6 +212,9 @@ void hfp_ag_sco_management_callback( wiced_bt_management_evt_t event, wiced_bt_m
                     if(hfp_ag_hci_send_ag_event)
                         hfp_ag_hci_send_ag_event( HCI_CONTROL_AG_EVENT_AUDIO_CLOSE, p_scb->app_handle, NULL );
                 }
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+                g_sco_ag_index = BTM_INVALID_SCO_INDEX;
+#endif
             }
             break;
 

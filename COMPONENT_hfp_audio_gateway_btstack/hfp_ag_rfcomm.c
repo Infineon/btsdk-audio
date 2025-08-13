@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -41,6 +41,7 @@
 #include "hfp_ag.h"
 #include "hci_control_api.h"
 #include "string.h"
+#include "wiced_memory.h"
 
 static void hfp_ag_rfcomm_closed( hfp_ag_session_cb_t *p_scb );
 static void hfp_ag_rfcomm_opened( hfp_ag_session_cb_t *p_scb );
@@ -54,7 +55,9 @@ extern hfp_ag_hci_send_ag_event_cback_t hfp_ag_hci_send_ag_event;
  */
 void hfp_ag_rfcomm_port_tx_cmpl_cback(uint16_t handle, void *p_data)
 {
-    /* nothing to do */
+    /* release buffer */
+    if (p_data)
+        wiced_bt_free_buffer(p_data);
 }
 #endif /* BTSTACK_VER */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -265,6 +265,13 @@ void wiced_bt_avrc_tg_initiate_open(wiced_bt_device_address_t peer_addr);
 ** Description    Called to disconnect AVRC connection
 *******************************************************************************/
 void wiced_bt_avrc_tg_initiate_close( void );
+
+/*******************************************************************************
+* Function        wiced_bt_avrc_tg_deinit
+
+** Description    Called to deinit AVRC Target
+*******************************************************************************/
+void wiced_bt_avrc_tg_deinit();
 
 #ifdef APP_AVRC_TRACK_INFO_SUPPORTED
 /*******************************************************************************

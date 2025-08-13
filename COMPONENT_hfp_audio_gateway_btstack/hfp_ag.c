@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2016-2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -38,6 +38,9 @@
  */
 #include "hfp_ag.h"
 #include "hci_control_api.h"
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+#include "wiced_bt_hfp_hf.h"
+#endif
 #include "string.h"
 
 extern wiced_result_t hci_control_send_script_event(int type, uint8_t *p_data, uint16_t data_size);
@@ -80,7 +83,13 @@ void sdp_timer_cb(WICED_TIMER_PARAM_TYPE arg)
 
         /* set role */
         p_scb->b_is_initiator = WICED_TRUE;
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+        // Since AG uses VR to simulate a call to establish SCO,
+        // and only HFP support this AT, so must connect peer as HFP
+        p_scb->hf_profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
+#else
         p_scb->hf_profile_uuid = UUID_SERVCLASS_HEADSET; //Try to search Headset service again
+#endif
 
         /* do service search */
         hfp_ag_sdp_start_discovery( p_scb );
@@ -250,6 +259,56 @@ void hfp_ag_audio_close( uint16_t handle )
     }
 }
 
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+static hfp_ag_session_cb_t *hfp_ag_find_scb_by_peer_addr(wiced_bt_device_address_t peer_addr)
+{
+    hfp_ag_session_cb_t *p_scb = ag_p_scb;
+    uint16_t i;
+
+    for ( i = 0; i < ag_num_scb; i++, p_scb++ )
+    {
+        if (memcmp(peer_addr, p_scb->hf_addr, BD_ADDR_LEN) == 0)
+            return (p_scb);
+    }
+
+    /* no scb found */
+    WICED_BT_TRACE("No scb for peer dev: %B\n", peer_addr);
+    return NULL;
+}
+
+/*
+ * Opens an audio connection to the currently connected audio gateway specified
+ * by the peer address.
+ */
+void hfp_ag_audio_open_by_addr(wiced_bt_device_address_t peer_addr)
+{
+    hfp_ag_session_cb_t *p_scb = hfp_ag_find_scb_by_peer_addr(peer_addr);
+
+    if (p_scb == NULL)
+        return;
+
+    WICED_BT_TRACE( "hfp_ag_audio_open_by_addr %B\n", peer_addr);
+
+    hfp_ag_audio_open(p_scb->app_handle);
+}
+
+/*
+ * Close the currently active audio connection to a audio gateway specified by
+ * the peer address. The data connection remains opened.
+ */
+void hfp_ag_audio_close_by_addr(wiced_bt_device_address_t peer_addr)
+{
+    hfp_ag_session_cb_t *p_scb = hfp_ag_find_scb_by_peer_addr(peer_addr);
+
+    if (p_scb == NULL)
+        return;
+
+    WICED_BT_TRACE( "hfp_ag_audio_close_by_addr %B\n", peer_addr);
+
+    hfp_ag_audio_close(p_scb->app_handle);
+}
+#endif
+
 /*
  * Sends Given Command string
  */
@@ -360,6 +419,10 @@ void hfp_ag_process_open_callback( hfp_ag_session_cb_t *p_scb, uint8_t status )
     }
 }
 
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+extern uint8_t wiced_bt_hfp_hf_set_codec_to_cvsd_only(uint8_t);
+#endif
+
 /*
  * Service level connection opened
  */
@@ -373,6 +436,14 @@ void hfp_ag_service_level_up( hfp_ag_session_cb_t *p_scb )
         p_scb->b_slc_is_up = WICED_TRUE;
 
         evt.peer_features = p_scb->hf_features;
+#ifdef WICED_APP_SCO_RELAY_INCLUDED
+        utl_bdcpy(evt.bd_addr, p_scb->hf_addr);
+
+        // notify HF updating codec
+        WICED_BT_TRACE("%s updating HF codec to %s\n", __FUNCTION__,
+                        p_scb->peer_supports_msbc ? "CVSD and mSBC" : "CVSD only");
+        wiced_bt_hfp_hf_set_codec_to_cvsd_only(!p_scb->peer_supports_msbc);
+#endif
 
         /* call callback */
         if(hfp_ag_hci_send_ag_event)
